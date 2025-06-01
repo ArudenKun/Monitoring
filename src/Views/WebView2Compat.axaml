@@ -1,0 +1,19 @@
+﻿<UserControl
+    x:Class="Monitoring.Views.WebView2Compat"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:viewModels="clr-namespace:Monitoring.ViewModels"
+    x:DataType="viewModels:WebView2CompatViewModel">
+    <Grid>
+        <TextBlock
+            x:Name="TextBlock"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            FontSize="24"
+            Text="Loading…" />
+        <WebView2
+            x:Name="WebView2"
+            CreationProperties="{Binding CreationProperties, Mode=OneTime}"
+            Source="{Binding Url}" />
+    </Grid>
+</UserControl>

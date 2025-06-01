@@ -1,0 +1,43 @@
+﻿<UserControl
+    x:Class="Monitoring.Views.Pages.TicketsPage"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:pages="clr-namespace:Monitoring.ViewModels.Pages"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="pages:TicketsPageViewModel"
+    mc:Ignorable="d">
+    <TabControl>
+        <TabItem VerticalContentAlignment="Center" Header="WebView2">
+            <Grid RowDefinitions="Auto Auto * Auto">
+                <Label
+                    x:Name="Title"
+                    Grid.Row="0"
+                    Margin="6,6,6,6"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="14"
+                    FontWeight="Bold" />
+                <Grid Grid.Row="1" ColumnDefinitions="*, Auto">
+                    <TextBox Text="{Binding Query}" Watermark="Enter the URL address and press enter to navigate">
+                        <Interaction.Behaviors>
+                            <KeyDownEventTrigger>
+                                <InvokeCommandAction Command="{Binding SubmitCommand}" PassEventArgsToCommand="True" />
+                            </KeyDownEventTrigger>
+                        </Interaction.Behaviors>
+                    </TextBox>
+                    <Button
+                        Grid.Column="1"
+                        Command="{Binding SubmitCommand}"
+                        Content="Submit" />
+                </Grid>
+                <ContentControl Grid.Row="2" Content="{Binding WebView2CompatViewModel}" />
+            </Grid>
+        </TabItem>
+        <TabItem VerticalContentAlignment="Center" Header="About">
+            <TextBlock Text="About Tab" />
+        </TabItem>
+    </TabControl>
+</UserControl>
