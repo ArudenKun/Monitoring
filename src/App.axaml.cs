@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -16,19 +17,25 @@ public sealed class App : Application
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<App> _logger;
+    private readonly ViewLocator _viewLocator;
 
-    public App(IServiceProvider serviceProvider, ILogger<App> logger)
+    public App(IServiceProvider serviceProvider, ILogger<App> logger, ViewLocator viewLocator)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _viewLocator = viewLocator;
     }
 
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        DataTemplates.Add(_viewLocator);
     }
 
+    [RequiresUnreferencedCode("Calls Avalonia.Data.Core.Plugins.BindingPlugins.DataValidators\"")]
+#pragma warning disable IL2046
     public override void OnFrameworkInitializationCompleted()
+#pragma warning restore IL2046
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
@@ -38,29 +45,26 @@ public sealed class App : Application
 
             _logger.ZLogInformation($"Initialized Application");
             lifetime.MainWindow =
-                ViewLocator.TryBindView(_serviceProvider.GetRequiredService<MainWindowViewModel>())
+                _viewLocator.TryBindView(_serviceProvider.GetRequiredService<MainWindowViewModel>())
                 as Window;
         }
 
         base.OnFrameworkInitializationCompleted();
     }
 
+    [RequiresUnreferencedCode("Calls Avalonia.Data.Core.Plugins.BindingPlugins.DataValidators")]
     private void DisableAvaloniaDataAnnotationValidation()
     {
         // Get an array of plugins to remove
-#pragma warning disable IL2026
         var dataValidationPluginsToRemove = BindingPlugins
             .DataValidators.AsValueEnumerable()
-#pragma warning restore IL2026
             .OfType<DataAnnotationsValidationPlugin>()
             .ToArray();
 
         // remove each entry found
         foreach (var plugin in dataValidationPluginsToRemove)
         {
-#pragma warning disable IL2026
             BindingPlugins.DataValidators.Remove(plugin);
-#pragma warning restore IL2026
         }
     }
 }

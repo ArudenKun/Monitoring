@@ -46,8 +46,6 @@ public sealed partial class TicketsPageViewModel : PageViewModel, ITransientView
 
     // public BindableReactiveProperty<string> TextBoxUrl { get; }
 
-    public string PdfPath => @"C:\Users\alden\Downloads\Documents\standardnormaltable.pdf";
-
     [RelayCommand]
     private void Submit(KeyEventArgs? args)
     {

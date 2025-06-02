@@ -11,4 +11,6 @@ public sealed class DashboardPageViewModel : PageViewModel, ITransientViewModel
     public override string DisplayName => "Dashboard";
     public override long Order => 0;
     public override LucideIconKind Icon => LucideIconKind.House;
+
+    public string PdfPath => @"C:\Users\alden\Downloads\Documents\standardnormaltable.pdf";
 }

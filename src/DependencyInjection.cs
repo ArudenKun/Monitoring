@@ -1,6 +1,8 @@
 ﻿using System.Text.Json.Serialization.Metadata;
 using Humanizer;
-using Microsoft.EntityFrameworkCore;
+using LinqToDB;
+using LinqToDB.AspNet;
+using LinqToDB.AspNet.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,6 +12,7 @@ using Monitoring.Common.Helpers;
 using Monitoring.Common.Settings;
 using Monitoring.Data;
 using Monitoring.ViewModels;
+using Monitoring.Views.Abstractions;
 using ServiceScan.SourceGenerator;
 using ZLogger;
 using ZLogger.Providers;
@@ -36,12 +39,15 @@ public static partial class DependencyInjection
             });
 
         builder.Services
-            // .AddViews()
+            .AddViews()
             .AddViewModels()
+            .AddSingleton<ViewLocator>()
             .AddSingleton<IJsonTypeInfoResolver>(AppJsonContext.Default)
             .AddSingleton(AppJsonContext.Default.Options)
             .AddSingleton<AppSettings>()
-            .AddDbContext<AppDbContext>(options => options.UseSqlite(PathHelper.DatabasePath));
+            .AddLinqToDBContext<AppDbContext>((sp, options) =>
+                options.UseSQLiteOfficial(PathHelper.DatabasePath).UseDefaultLogging(sp));
+
 
         return builder;
     }
@@ -68,18 +74,18 @@ public static partial class DependencyInjection
         Lifetime = ServiceLifetime.Transient
     )]
     private static partial IServiceCollection AddViewModels(this IServiceCollection services);
-    
+
     // [GenerateServiceRegistrations(
     //     AssignableTo = typeof(IView<>),
     //     CustomHandler = nameof(AddViewsHandler)
     // )]
-    
-    // [GenerateServiceRegistrations(
-    //     AssignableTo = typeof(IView<>),
-    //     AsSelf = true,
-    //     Lifetime = ServiceLifetime.Transient
-    // )]
-    // private static partial IServiceCollection AddViews(this IServiceCollection services);
+
+    [GenerateServiceRegistrations(
+        AssignableTo = typeof(IView<>),
+        AsSelf = true,
+        Lifetime = ServiceLifetime.Transient
+    )]
+    private static partial IServiceCollection AddViews(this IServiceCollection services);
 
     // private static void AddViewsHandler<
     //     [DynamicallyAccessedMembers(

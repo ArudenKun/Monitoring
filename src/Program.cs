@@ -6,6 +6,9 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 using ZLogger;
 
 namespace Monitoring;
@@ -31,6 +34,12 @@ internal static class Program
         {
             app.Services.GetRequiredService<ILogger<App>>()
                 .ZLogError(ex, $"Application terminated unexpectedly");
+            PInvoke.MessageBox(
+                new HWND(0),
+                ex.Message,
+                "Monitoring Fatal Error",
+                MESSAGEBOX_STYLE.MB_ICONERROR
+            );
             throw;
         }
         finally
@@ -47,5 +56,14 @@ internal static class Program
     private static void ConfigureAppBuilder(
         IServiceProvider serviceProvider,
         AppBuilder appBuilder
-    ) => appBuilder.UseHotReload().UsePlatformDetect().LogToTrace();
+    ) =>
+        appBuilder
+            .UseHotReload()
+            .UsePlatformDetect()
+            .UseR3(e =>
+                serviceProvider
+                    .GetRequiredService<ILogger<App>>()
+                    .ZLogError(e, $"Unhandled exception")
+            )
+            .LogToTrace();
 }

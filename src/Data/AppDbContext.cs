@@ -1,24 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using LinqToDB;
 using Monitoring.Data.Entities;
 
 namespace Monitoring.Data;
 
-public sealed class AppDbContext : DbContext
+public sealed class AppDbContext : DataContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options) { }
+    public AppDbContext(DataOptions<AppDbContext> options)
+        : base(options.Options) { }
 
-    public DbSet<Board> Boards => Set<Board>();
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-    }
-
-    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-    {
-        base.ConfigureConventions(configurationBuilder);
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
+    public ITable<Board> Boards => this.GetTable<Board>();
 }

@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Avalonia.Hosting.Internals;
 
@@ -70,21 +71,30 @@ internal sealed class AvaloniaThread
     /// </summary>
     private void ThreadStart()
     {
-        var appBuilder = _serviceProvider.GetRequiredService<AppBuilder>();
-        appBuilder.StartWithClassicDesktopLifetime(
-            [],
-            desktop =>
-            {
-                desktop.Startup += (_, _) => _applicationStarted.SetResult(null!);
-                desktop.Exit += (_, _) =>
+        try
+        {
+            var appBuilder = _serviceProvider.GetRequiredService<AppBuilder>();
+            appBuilder.StartWithClassicDesktopLifetime(
+                [],
+                desktop =>
                 {
-                    _applicationExited.TrySetResult(null!);
-                    _applicationLifetime.StopApplication();
-                };
-            }
-        );
-        // Avalonia stopped.
-        _applicationExited.TrySetResult(null!);
-        _applicationLifetime.StopApplication();
+                    desktop.Startup += (_, _) => _applicationStarted.SetResult(null!);
+                    desktop.Exit += (_, _) =>
+                    {
+                        _applicationExited.TrySetResult(null!);
+                        _applicationLifetime.StopApplication();
+                    };
+                }
+            );
+            // Avalonia stopped.
+            _applicationExited.TrySetResult(null!);
+            _applicationLifetime.StopApplication();
+        }
+        catch (Exception e)
+        {
+            var logger = _serviceProvider.GetRequiredService<ILogger<AvaloniaThread>>();
+            logger.LogError(e, "Avalonia thread encountered an error");
+            throw;
+        }
     }
 }

@@ -14,15 +14,21 @@ namespace Monitoring;
 public sealed class ViewLocator : IDataTemplate
 {
     private static readonly ConcurrentDictionary<Type, Type?> ViewTypeCache = new();
-
     private static readonly TextBlock ViewNotFoundControl = new();
+
+    private readonly IServiceProvider _serviceProvider;
+
+    public ViewLocator(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
 
     public Control Build(object? data) =>
         data is ViewModel viewModel ? TryBindView(viewModel) : ViewNotFoundControl;
 
     public bool Match(object? data) => data is ViewModel;
 
-    public static Control TryBindView(ViewModel viewModel)
+    public Control TryBindView(ViewModel viewModel)
     {
         if (TryCreateView(viewModel) is not { } view)
         {
@@ -35,11 +41,11 @@ public sealed class ViewLocator : IDataTemplate
         return view;
     }
 
-    private static Control? TryCreateView(ViewModel viewModel)
+    private Control? TryCreateView(ViewModel viewModel)
     {
         var vmType = viewModel.GetType();
         var viewType = ViewTypeCache.GetOrAdd(vmType, FindViewTypeForViewModel);
-        return viewType is null ? null : Activator.CreateInstance(viewType) as Control;
+        return viewType is null ? null : _serviceProvider.GetService(viewType) as Control;
     }
 
     private static Type? FindViewTypeForViewModel(Type vmType) =>
