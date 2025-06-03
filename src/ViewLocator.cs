@@ -4,7 +4,7 @@ using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Interactivity;
-using Monitoring.Common.Helpers;
+using Microsoft.Extensions.DependencyInjection;
 using Monitoring.ViewModels;
 using Monitoring.Views.Abstractions;
 using ZLinq;
@@ -48,10 +48,11 @@ public sealed class ViewLocator : IDataTemplate
         return viewType is null ? null : _serviceProvider.GetService(viewType) as Control;
     }
 
-    private static Type? FindViewTypeForViewModel(Type vmType) =>
-        AssemblyHelper
-            .GetViewTypes()
+    private Type? FindViewTypeForViewModel(Type vmType) =>
+        _serviceProvider
+            .GetServices<IView>()
             .AsValueEnumerable()
+            .Select(t => t.GetType())
             .Select(candidateViewType =>
                 (
                     ViewType: candidateViewType,

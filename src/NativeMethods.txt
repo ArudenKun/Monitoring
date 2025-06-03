@@ -1,1 +1,12 @@
-﻿MessageBox
+﻿GetModuleHandle
+RegisterClassEx
+CreateWindowEx
+PostQuitMessage
+WM_DESTROY
+DefWindowProc
+DestroyWindow
+GetWindowLong
+SetLayeredWindowAttributes
+AllocConsole
+FreeConsole
+MessageBox

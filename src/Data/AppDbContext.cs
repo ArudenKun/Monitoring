@@ -1,12 +1,12 @@
-﻿using LinqToDB;
+﻿using Microsoft.EntityFrameworkCore;
 using Monitoring.Data.Entities;
 
 namespace Monitoring.Data;
 
-public sealed class AppDbContext : DataContext
+public sealed class AppDbContext : DbContext
 {
-    public AppDbContext(DataOptions<AppDbContext> options)
-        : base(options.Options) { }
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options) { }
 
-    public ITable<Board> Boards => this.GetTable<Board>();
+    public DbSet<Board> Boards => Set<Board>();
 }

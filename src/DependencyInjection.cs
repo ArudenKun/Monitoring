@@ -1,8 +1,10 @@
-﻿using System.Text.Json.Serialization.Metadata;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization.Metadata;
+using Avalonia.Controls;
 using Humanizer;
-using LinqToDB;
-using LinqToDB.AspNet;
-using LinqToDB.AspNet.Logging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -45,8 +47,8 @@ public static partial class DependencyInjection
             .AddSingleton<IJsonTypeInfoResolver>(AppJsonContext.Default)
             .AddSingleton(AppJsonContext.Default.Options)
             .AddSingleton<AppSettings>()
-            .AddLinqToDBContext<AppDbContext>((sp, options) =>
-                options.UseSQLiteOfficial(PathHelper.DatabasePath).UseDefaultLogging(sp));
+            .AddDbContext<AppDbContext>((sp, options) =>
+                options.UseSqlite(PathHelper.DatabasePath).AddInterceptors(sp.GetServices<IInterceptor>()));
 
 
         return builder;
@@ -75,34 +77,36 @@ public static partial class DependencyInjection
     )]
     private static partial IServiceCollection AddViewModels(this IServiceCollection services);
 
-    // [GenerateServiceRegistrations(
-    //     AssignableTo = typeof(IView<>),
-    //     CustomHandler = nameof(AddViewsHandler)
-    // )]
-
     [GenerateServiceRegistrations(
         AssignableTo = typeof(IView<>),
-        AsSelf = true,
-        Lifetime = ServiceLifetime.Transient
+        CustomHandler = nameof(AddViewsHandler)
     )]
+
+    // [GenerateServiceRegistrations(
+    //     AssignableTo = typeof(IView<>),
+    //     AsSelf = true,
+    //     Lifetime = ServiceLifetime.Transient
+    // )]
     private static partial IServiceCollection AddViews(this IServiceCollection services);
 
-    // private static void AddViewsHandler<
-    //     [DynamicallyAccessedMembers(
-    //         DynamicallyAccessedMemberTypes.Interfaces
-    //         | DynamicallyAccessedMemberTypes.PublicConstructors
-    //     )]
-    //     TView
-    // >(this IServiceCollection services)
-    //     where TView : Control
-    // {
-    //     var type = typeof(TView);
-    //     var viewInterfaceType =
-    //         type.GetInterface("IView`1")
-    //         ?? throw new InvalidOperationException(
-    //             $"Type '{type.FullName}' does not implement IView"
-    //         );
-    //     services.AddTransient<TView>();
-    //     services.AddTransient(viewInterfaceType, sp => sp.GetRequiredService<TView>());
-    // }
+    private static void AddViewsHandler<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.Interfaces
+            | DynamicallyAccessedMemberTypes.PublicConstructors
+        )]
+        TView
+    >(this IServiceCollection services)
+        where TView : Control
+    {
+        var type = typeof(TView);
+        var viewInterfaceType = typeof(IView);
+        var viewInterfaceOneType =
+            type.GetInterface("IView`1")
+            ?? throw new InvalidOperationException(
+                $"Type '{type.FullName}' does not implement IView"
+            );
+        services.AddTransient<TView>();
+        services.AddTransient(viewInterfaceType, sp => sp.GetRequiredService<TView>());
+        services.AddTransient(viewInterfaceOneType, sp => sp.GetRequiredService<TView>());
+    }
 }
